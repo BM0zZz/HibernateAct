@@ -6,81 +6,109 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.query.Query;
-
 import java.util.List;
 
 public class HibernateUtil {
 
-    private static final SessionFactory sessionFactory;
-
-    static {
-        try {
-            sessionFactory = new Configuration()
-                    .configure() // lee hibernate.cfg.xml
-                    .buildSessionFactory();
-        } catch (Throwable ex) {
-            System.err.println("Error al crear la SessionFactory: " + ex);
-            throw new ExceptionInInitializerError(ex);
-        }
-    }
+    private static final SessionFactory sessionFactory =
+            new Configuration().configure().buildSessionFactory();
 
     public static SessionFactory getSessionFactory() {
         return sessionFactory;
     }
 
-    // ======================
-    //   MÉTODOS CRUD
-    // INSERTAR
-    public static void insertarProducto(Product p) {
+    // =====================
+    // CRUD equivalente al DAO
+    // =====================
+
+    // CREATE
+    public static Product addProduct(Product product) {
+        Transaction tx = null;
+
         try (Session session = sessionFactory.openSession()) {
-            Transaction tx = session.beginTransaction();
-            session.persist(p);
+            tx = session.beginTransaction();
+            session.persist(product);
             tx.commit();
+            return product;
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
+            System.err.println("Error al insertar: " + e.getMessage());
+            return null;
         }
     }
 
-    // LISTAR TODOS
-    public static List<Product> obtenerProductos() {
+    // READ BY ID
+    public static Product getProductById(int id) {
+        try (Session session = sessionFactory.openSession()) {
+            return session.get(Product.class, id);
+        } catch (Exception e) {
+            System.err.println("Error al buscar por ID: " + e.getMessage());
+            return null;
+        }
+    }
+
+    // READ ALL
+    public static List<Product> getAllProducts() {
         try (Session session = sessionFactory.openSession()) {
             Query<Product> q = session.createQuery("FROM Product", Product.class);
             return q.list();
+        } catch (Exception e) {
+            System.err.println("Error al obtener productos: " + e.getMessage());
+            return List.of();
         }
     }
 
-    // BUSCAR POR ID
-    public static Product buscarPorId(int id) {
-        try (Session session = sessionFactory.openSession()) {
-            return session.get(Product.class, id);
-        }
-    }
+    // UPDATE
+    public static boolean updateProduct(Product p) {
+        Transaction tx = null;
 
-    // ACTUALIZAR
-    public static void actualizarProducto(Product p) {
         try (Session session = sessionFactory.openSession()) {
-            Transaction tx = session.beginTransaction();
+            tx = session.beginTransaction();
             session.merge(p);
             tx.commit();
+            return true;
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
+            System.err.println("Error al actualizar: " + e.getMessage());
+            return false;
         }
     }
 
-    // BORRAR POR ID
-    public static void borrarProducto(int id) {
+    // DELETE
+    public static boolean deleteProduct(int id) {
+        Transaction tx = null;
+
         try (Session session = sessionFactory.openSession()) {
             Product p = session.get(Product.class, id);
-            if (p == null) return;
+            if (p == null) return false;
 
-            Transaction tx = session.beginTransaction();
+            tx = session.beginTransaction();
             session.remove(p);
             tx.commit();
+            return true;
+
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
+            System.err.println("Error al borrar: " + e.getMessage());
+            return false;
+        }
+    }
+    //borrartodos
+    public static void borrarTodos() {
+        Transaction tx = null;
+        try (Session session = sessionFactory.openSession()) {
+            tx = session.beginTransaction();
+            session.createMutationQuery("DELETE FROM Product").executeUpdate();
+            tx.commit();
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
+            System.err.println("Error al borrar todos los productos: " + e.getMessage());
         }
     }
 
-    // BORRAR TODOS
-    public static void borrarTodos() {
-        try (Session session = sessionFactory.openSession()) {
-            Transaction tx = session.beginTransaction();
-            session.createMutationQuery("DELETE FROM Product").executeUpdate();
-            tx.commit();
-        }
+
+    // Close
+    public static void shutdown() {
+        if (sessionFactory != null) sessionFactory.close();
     }
 }

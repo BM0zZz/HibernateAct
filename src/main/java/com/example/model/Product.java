@@ -8,72 +8,64 @@ public class Product {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;   // <-- SIN setter, SIN constructor con id
+    private int id;
 
     private String name;
     private double price;
     private int stock;
     private String category;
 
-    @Column(length = 500)
     private String description;
 
-    // ==== Constructores ====
-
-    // Obligatorio para Hibernate (dejarlo public o protected)
     protected Product() {
+        // Hibernate lo necesita
     }
 
-    // Alta (desde el main): SIN id y SIN stock
-    // stock SIEMPRE empieza en 0
+
+    //       Constructor de alta
+
     public Product(String name, double price, String category, String description) {
         setName(name);
         setPrice(price);
-        this.stock = 0; // alta => stock inicial 0
+        this.stock = 0;
         setCategory(category);
         setDescription(description);
     }
 
-    // ==== Getters ====
 
-    public int getId() {  // solo lectura, lo pone Hibernate
-        return id;
-    }
+    //GETTERS
 
+    public int getId() { return id; }
     public String getName() { return name; }
     public double getPrice() { return price; }
     public int getStock() { return stock; }
     public String getCategory() { return category; }
     public String getDescription() { return description; }
 
-    // ==== Setters con validación (como en tu modelo original) ====
+
+    //SETTERS
 
     public void setName(String name) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("name obligatorio");
-        }
+        if (name == null || name.isBlank())
+            throw new IllegalArgumentException("Nombre obligatorio");
         this.name = name.trim();
     }
 
     public void setPrice(double price) {
-        if (price < 0) {
-            throw new IllegalArgumentException("price no puede ser negativo");
-        }
+        if (price < 0)
+            throw new IllegalArgumentException("Precio no puede ser negativo");
         this.price = price;
     }
 
-    // OJO: no exponemos un setStock público “tonto” si no quieres
     public void setStock(int stock) {
-        if (stock < 0) {
-            throw new IllegalArgumentException("stock no puede ser negativo");
-        }
+        if (stock < 0)
+            throw new IllegalArgumentException("Stock no puede ser negativo");
         this.stock = stock;
     }
 
     public void setCategory(String category) {
-        if (category == null || category.isBlank()) {
-            throw new IllegalArgumentException("category obligatoria");
-        }
+        if (category == null || category.isBlank())
+            throw new IllegalArgumentException("Categoría obligatoria");
         this.category = category.trim();
     }
 
@@ -81,16 +73,17 @@ public class Product {
         this.description = (description == null) ? "" : description.trim();
     }
 
-    // ==== Lógica de negocio de stock, como tenías antes ====
-
     public void increaseStock(int units) {
-        if (units <= 0) throw new IllegalArgumentException("unidades > 0");
+        if (units <= 0)
+            throw new IllegalArgumentException("Las unidades deben ser > 0");
         this.stock += units;
     }
 
     public void decreaseStock(int units) {
-        if (units <= 0) throw new IllegalArgumentException("unidades > 0");
-        if (units > this.stock) throw new IllegalArgumentException("no hay stock suficiente");
+        if (units <= 0)
+            throw new IllegalArgumentException("Las unidades deben ser > 0");
+        if (units > this.stock)
+            throw new IllegalArgumentException("No hay stock suficiente");
         this.stock -= units;
     }
 
