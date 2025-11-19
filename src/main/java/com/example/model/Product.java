@@ -22,7 +22,7 @@ public class Product {
     }
 
 
-    //       Constructor de alta
+    //Constructor de alta
 
     public Product(String name, double price, String category, String description) {
         setName(name);

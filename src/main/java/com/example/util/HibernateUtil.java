@@ -17,9 +17,9 @@ public class HibernateUtil {
         return sessionFactory;
     }
 
-    // =====================
-    // CRUD equivalente al DAO
-    // =====================
+
+    // CRUD
+
 
     // CREATE
     public static Product addProduct(Product product) {
